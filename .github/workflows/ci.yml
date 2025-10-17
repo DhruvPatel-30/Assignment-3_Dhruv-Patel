@@ -1,0 +1,59 @@
+name: NYC311 CI - Assignment 3_Dhruv Patel 9062297
+
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: nyc311
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.11
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install selenium pymysql python-dotenv
+
+    - name: Copy env file
+      run: cp .env.example .env
+
+    - name: Initialize database
+      run: |
+        docker exec -i $(docker ps -qf "name=db") mysql -uroot -proot nyc311 < db/schema.sql
+      continue-on-error: true
+
+    - name: Run ETL on fixture CSV
+      run: python etl/etl.py
+
+    - name: Run Selenium tests headless
+      run: |
+        python -m unittest tests/selenium_test.py -v
+      env:
+        DB_HOST: localhost
+        DB_USER: root
+        DB_PASSWORD: root
+        DB_NAME: nyc311

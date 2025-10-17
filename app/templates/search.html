@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>NYC 311 Service Requests - Search</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        form { margin-bottom: 20px; }
+        input, select { padding: 5px; margin: 5px; }
+        button { padding: 5px 10px; }
+    </style>
+</head>
+<body>
+    <h1>NYC 311 Service Requests</h1>
+    <form action="/search" method="post">
+        <label>Borough:</label>
+        <select name="borough">
+            <option value="">--All--</option>
+            <option value="MANHATTAN">MANHATTAN</option>
+            <option value="BROOKLYN">BROOKLYN</option>
+            <option value="BRONX">BRONX</option>
+            <option value="QUEENS">QUEENS</option>
+            <option value="STATEN ISLAND">STATEN ISLAND</option>
+        </select>
+
+        <label>Complaint Type:</label>
+        <input type="text" name="complaint_type" placeholder="Noise, Plumbing, etc.">
+
+        <label>Start Date:</label>
+        <input type="date" name="start_date">
+
+        <label>End Date:</label>
+        <input type="date" name="end_date">
+
+        <button type="submit">Search</button>
+    </form>
+
+    <p><a href="/aggregate">View Complaints per Borough</a></p>
+</body>
+</html>

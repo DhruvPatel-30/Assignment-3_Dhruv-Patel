@@ -1,18 +1,41 @@
-version: '3.9'
+version: "3.9"
+
 services:
   db:
-    image: mysql:8.0
+    image: mysql:8
+    container_name: assignment3_db
     environment:
-      MYSQL_ROOT_PASSWORD: rootpass
+      MYSQL_ROOT_PASSWORD: Dhruv3008
+      MYSQL_DATABASE: nyc311
+      MYSQL_USER: dhruv
+      MYSQL_PASSWORD: Dhruv3008
     ports:
-      - "3306:3306"
+      - "3307:3306"   # avoid conflict with local MySQL
     volumes:
-      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+
   app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: assignment3_app
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "5000:5000"
+    environment:
+      DB_HOST: db
+      DB_USER: dhruv
+      DB_PASSWORD: Dhruv3008
+      DB_NAME: nyc311
     volumes:
       - .:/app
-    depends_on:
-      - db
+
+volumes:
+  db_data:

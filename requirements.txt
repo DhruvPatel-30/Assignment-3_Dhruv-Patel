@@ -4,3 +4,4 @@ SQLAlchemy
 pandas
 selenium
 webdriver-manager
+cryptography
