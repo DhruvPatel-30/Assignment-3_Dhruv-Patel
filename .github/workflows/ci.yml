@@ -59,19 +59,7 @@ jobs:
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
 
-      # -------------------------
-      # Install Chrome & Chromedriver for Selenium
-      # -------------------------
-      - name: Install Chrome & Chromedriver
-        run: |
-          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb || sudo apt-get -f install
-          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+')
-          wget -q "https://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip"
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
-          sudo chmod +x /usr/local/bin/
-
+      
       # -------------------------
       # Start Flask in background
       # -------------------------
