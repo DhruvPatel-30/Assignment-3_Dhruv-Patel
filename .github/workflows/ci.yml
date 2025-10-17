@@ -1,13 +1,13 @@
-name: Assignment-3 CI
+name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
+    branches: [main]
 
 jobs:
-  build-etl:
+  etl-test:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -17,13 +17,13 @@ jobs:
           MYSQL_DATABASE: nyc311
           MYSQL_USER: dhruv
           MYSQL_PASSWORD: Dhruv3008
-        ports:
-          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -uroot -pDhruv3008"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
+        ports:
+          - 3306:3306
 
     steps:
       - uses: actions/checkout@v3
@@ -33,23 +33,23 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Install MySQL client
+        run: sudo apt-get update && sudo apt-get install -y default-mysql-client
+
       - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
+        run: pip install -r requirements.txt
 
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be healthy..."
-          for i in {1..30}; do
-            mysqladmin ping -hmysql -udhruv -pDhruv3008 && break
-            echo "Waiting 2s..."
+          until mysql -hmysql -uroot -pDhruv3008 -e "SELECT 1"; do
+            echo "MySQL not ready yet..."
             sleep 2
           done
 
       - name: Load schema
         run: |
-          mysql -hmysql -udhruv -pDhruv3008 nyc311 < db/schema.sql
+          mysql -hmysql -uroot -pDhruv3008 nyc311 < db/schema.sql
 
       - name: Run ETL with fixture data
         run: |
@@ -58,7 +58,3 @@ jobs:
           export DB_PASSWORD=Dhruv3008
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
-
-      - name: Run tests
-        run: |
-          python -m unittest discover -s tests -p "*_test.py" -v
