@@ -1,19 +1,16 @@
-CREATE DATABASE IF NOT EXISTS nyc311;
-USE nyc311;
-
 CREATE TABLE IF NOT EXISTS service_requests (
-  unique_key BIGINT PRIMARY KEY,
-  created_date DATETIME NOT NULL,
-  closed_date DATETIME NULL,
-  agency VARCHAR(16),
-  complaint_type VARCHAR(128),
-  descriptor VARCHAR(255),
-  borough VARCHAR(32),
-  latitude DECIMAL(9,6),
-  longitude DECIMAL(9,6)
+    request_id BIGINT PRIMARY KEY,
+    created_datetime DATETIME NOT NULL,
+    closed_datetime DATETIME NULL,
+    agency VARCHAR(16),
+    agency_name VARCHAR(128),
+    complaint_type VARCHAR(128),
+    descriptor VARCHAR(255),
+    borough VARCHAR(32),
+    city VARCHAR(64),
+    latitude DECIMAL(9,6),
+    longitude DECIMAL(9,6),
+    status VARCHAR(32),
+    resolution_description TEXT,
+    month_key VARCHAR(7)
 );
-
--- Add indexes for performance optimization
-CREATE INDEX idx_borough ON service_requests (borough);
-CREATE INDEX idx_created_date ON service_requests (created_date);
-CREATE INDEX idx_complaint_type ON service_requests (complaint_type);
