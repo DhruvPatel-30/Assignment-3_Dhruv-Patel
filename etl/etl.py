@@ -1,13 +1,10 @@
-import os, sys, time, json
+import os
+import sys
+import time
 import pandas as pd
 import pymysql
 from dotenv import load_dotenv
-
-# Wrap psutil import for CI environments
-try:
-    import psutil
-except ImportError:
-    psutil = None  # CI will skip system stats if psutil is missing
+import argparse
 
 # -------------------------------------------
 # CONFIGURATION
@@ -118,10 +115,7 @@ def insert_batch(conn, rows):
 # -------------------------------------------
 # MAIN ETL FUNCTION
 # -------------------------------------------
-def run_etl():
-    file_path = "data/311_Service_Requests_from_2010_to_Present_20251016.csv"  # ✅ update if your CSV name differs
-    limit_rows = 1500  # for testing / fixture CSV
-
+def run_etl(file_path, limit_rows=1500):
     print(f"Loading up to {limit_rows} rows from {file_path} ...")
 
     conn = connect()
@@ -147,16 +141,16 @@ def run_etl():
                     int(r.request_id),
                     created_dt,
                     closed_dt,
-                    r.agency if pd.notna(r.agency) else None,
-                    r.agency_name if pd.notna(r.agency_name) else None,
-                    r.complaint_type if pd.notna(r.complaint_type) else "UNKNOWN",
-                    r.descriptor if pd.notna(r.descriptor) else None,
-                    r.borough if pd.notna(r.borough) else "UNKNOWN",
-                    r.city if pd.notna(r.city) else None,
-                    float(r.latitude) if not pd.isna(r.latitude) else None,
-                    float(r.longitude) if not pd.isna(r.longitude) else None,
-                    r.status if pd.notna(r.status) else None,
-                    r.resolution_description if pd.notna(r.resolution_description) else None,
+                    (r.agency if pd.notna(r.agency) else None),
+                    (r.agency_name if pd.notna(r.agency_name) else None),
+                    (r.complaint_type if pd.notna(r.complaint_type) else "UNKNOWN"),
+                    (r.descriptor if pd.notna(r.descriptor) else None),
+                    (r.borough if pd.notna(r.borough) else "UNKNOWN"),
+                    (r.city if pd.notna(r.city) else None),
+                    (float(r.latitude) if not pd.isna(r.latitude) else None),
+                    (float(r.longitude) if not pd.isna(r.longitude) else None),
+                    (r.status if pd.notna(r.status) else None),
+                    (r.resolution_description if pd.notna(r.resolution_description) else None),
                     r.month_key
                 ))
 
@@ -179,4 +173,10 @@ def run_etl():
 
 # -------------------------------------------
 if __name__ == "__main__":
-    run_etl()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rows", type=int, default=1500, help="Number of rows to load")
+    parser.add_argument("--file", type=str, default="data/311_Service_Requests_from_2010_to_Present_20251016.csv",
+                        help="CSV file to load")
+    args = parser.parse_args()
+
+    run_etl(file_path=args.file, limit_rows=args.rows)

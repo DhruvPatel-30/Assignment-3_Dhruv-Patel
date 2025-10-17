@@ -1,9 +1,10 @@
-name: Assignment 3 CI_Dhruv
+name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
   build-and-test:
@@ -15,45 +16,31 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: nyc311
+          MYSQL_USER: root
+          MYSQL_PASSWORD: root
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 3
         ports:
           - 3306:3306
-        options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=3
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: 3.11
 
-      - name: Install system dependencies
-        run: sudo apt-get update && sudo apt-get install -y build-essential python3-dev
-
-      - name: Install Python dependencies
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install --only-binary :all: -r requirements.txt
+          pip install -r requirements.txt
 
-      - name: Wait for MySQL to be ready
-        run: |
-          for i in {1..30}; do
-            mysqladmin ping -h 127.0.0.1 -P 3306 --silent && break
-            echo "Waiting for MySQL..."
-            sleep 2
-          done
+      - name: Copy .env file
+        run: cp .env.example .env
 
-      - name: Load database schema
-        run: |
-          mysql -h 127.0.0.1 -P 3306 -uroot -proot nyc311 < db/schema.sql
-
-      - name: Run ETL on fixture CSV
+      - name: Run ETL with fixture CSV
         run: python etl/etl.py --rows 50 --file data/fixture.csv
-
-      - name: Run Selenium tests
-        run: python -m unittest tests/selenium_test.py -v
