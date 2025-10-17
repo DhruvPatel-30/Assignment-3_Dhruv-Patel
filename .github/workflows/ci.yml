@@ -59,20 +59,42 @@ jobs:
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
 
-      # -------------------------
-      # Selenium Tests
-      # -------------------------
-      - name: Start Flask app
+  selenium-test:
+    runs-on: ubuntu-latest
+    needs: etl-test
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
         run: |
-          export FLASK_APP=app.py
-          export FLASK_ENV=development
-          nohup flask run --host=0.0.0.0 --port=5000 &
-          # wait until Flask responds
-          for i in {1..20}; do
-            curl -s http://127.0.0.1:5000 > /dev/null && break
-            echo "Waiting for Flask to start..."
-            sleep 2
-          done
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install selenium webdriver-manager
+
+      - name: Install Chrome and Chromedriver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip xvfb
+          wget -q https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
+          sudo apt install -y ./google-chrome-stable_current_amd64.deb || sudo apt-get -f install
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+')
+          wget -q "https://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip"
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
+
+      - name: Start Flask App in Background
+        run: |
+          export FLASK_APP=app:app
+          export BASE_URL=http://127.0.0.1:5000
+          nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+          sleep 10  # wait for Flask to start
 
       - name: Run Selenium tests
         run: |
