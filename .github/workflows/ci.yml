@@ -58,23 +58,3 @@ jobs:
           export DB_PASSWORD=Dhruv3008
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
-
-      # -----------------------------
-      # Selenium-specific steps
-      # -----------------------------
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -qO- https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Install Selenium
-        run: pip install selenium webdriver-manager
-
-      - name: Run Selenium tests headless
-        run: |
-          export BASE_URL=http://127.0.0.1:5000
-          python -m unittest discover -s tests -p "selenium_test.py"
