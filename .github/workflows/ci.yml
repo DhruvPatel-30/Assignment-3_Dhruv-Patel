@@ -34,10 +34,17 @@ jobs:
           python-version: "3.11"
 
       - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y default-mysql-client
+        run: sudo apt-get update && sudo apt-get install -y default-mysql-client wget gnupg
 
       - name: Install Python dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt
+        run: pip install --upgrade pip && pip install -r requirements.txt selenium webdriver-manager
+
+      - name: Install Google Chrome
+        run: |
+          wget -qO- https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
+          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
 
       - name: Wait for MySQL to be ready
         run: |
@@ -58,3 +65,13 @@ jobs:
           export DB_PASSWORD=Dhruv3008
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
+
+      - name: Start Flask app for Selenium
+        run: |
+          nohup python -m flask --app app.main run --host=127.0.0.1 --port=5000 &
+          sleep 3
+
+      - name: Run Selenium tests headless
+        env:
+          APP_URL: http://127.0.0.1:5000
+        run: pytest -q tests/selenium
