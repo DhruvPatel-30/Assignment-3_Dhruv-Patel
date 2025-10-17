@@ -2,57 +2,58 @@ name: Assignment 3 CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
-  build-test:
+  build-and-test:
     runs-on: ubuntu-latest
 
     services:
-      db:
+      mysql:
         image: mysql:8
-        ports:
-          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: nyc311
+        ports:
+          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=3
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: "3.11"
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y build-essential python3-dev
 
-    - name: Wait for MySQL to be ready
-      run: |
-        until mysqladmin ping -h 127.0.0.1 -P 3306 --silent; do
-          echo "Waiting for database..."
-          sleep 3
-        done
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Load database schema
-      run: |
-        mysql -h 127.0.0.1 -uroot -proot nyc311 < db/schema.sql
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            mysqladmin ping -h 127.0.0.1 -P 3306 --silent && break
+            echo "Waiting for MySQL..."
+            sleep 2
+          done
 
-    - name: Run ETL on small fixture CSV
-      run: |
-        python etl/etl.py --rows 50 --file data/fixture.csv
+      - name: Load database schema
+        run: |
+          mysql -h 127.0.0.1 -P 3306 -uroot -proot nyc311 < db/schema.sql
 
-    - name: Run Selenium tests
-      run: |
-        pytest -q --disable-warnings tests/selenium_test.py
+      - name: Run ETL on fixture CSV
+        run: python etl/etl.py --rows 50 --file data/fixture.csv
+
+      - name: Run Selenium tests
+        run: python -m unittest tests/selenium_test.py -v
