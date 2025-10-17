@@ -34,10 +34,10 @@ jobs:
           python-version: "3.11"
 
       - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y default-mysql-client curl
+        run: sudo apt-get update && sudo apt-get install -y default-mysql-client
 
       - name: Install Python dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt && pip install selenium webdriver-manager
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Wait for MySQL to be ready
         run: |
@@ -59,25 +59,22 @@ jobs:
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
 
-      # ----------------------------
+      # -------------------------
       # Selenium Tests
-      # ----------------------------
-      - name: Start Flask App
+      # -------------------------
+      - name: Start Flask app
         run: |
-          export FLASK_APP=app.main
+          export FLASK_APP=app.py
           export FLASK_ENV=development
-          nohup python -m flask run --host=0.0.0.0 --port=5000 &
-          echo "Waiting for Flask server to start..."
-          for i in {1..15}; do
-            if curl -s http://127.0.0.1:5000 >/dev/null; then
-              echo "Flask is up!"
-              break
-            fi
-            echo "Flask not ready yet..."
+          nohup flask run --host=0.0.0.0 --port=5000 &
+          # wait until Flask responds
+          for i in {1..20}; do
+            curl -s http://127.0.0.1:5000 > /dev/null && break
+            echo "Waiting for Flask to start..."
             sleep 2
           done
 
-      - name: Run Selenium Tests
+      - name: Run Selenium tests
         run: |
           export BASE_URL=http://127.0.0.1:5000
           python -m unittest discover -s tests -p "selenium_test.py"
