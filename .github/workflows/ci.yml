@@ -7,8 +7,9 @@ on:
     branches: [main]
 
 jobs:
-  etl-test:
+  etl-and-selenium:
     runs-on: ubuntu-latest
+
     services:
       mysql:
         image: mysql:8
@@ -33,19 +34,21 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install MySQL client
-        run: sudo apt-get update && sudo apt-get install -y default-mysql-client curl unzip xvfb
+      - name: Install system packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y default-mysql-client unzip curl xvfb
 
-      - name: Install Python dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt selenium webdriver-manager
+      - name: Install dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt
 
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be healthy..."
-          for i in 1 2; do
+          for i in {1..10}; do
             mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "SELECT 1" && break
             echo "MySQL not ready yet..."
-            sleep 2
+            sleep 3
           done
 
       - name: Load schema
@@ -59,25 +62,28 @@ jobs:
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
 
-      
+    
+
       # -------------------------
-      # Start Flask in background
+      # Start Flask app
       # -------------------------
       - name: Start Flask app
         run: |
-          export FLASK_APP=app:app
-          export FLASK_ENV=development
-          nohup flask run --host=0.0.0.0 --port=5000 > flask.log 2>&1 &
+          export FLASK_APP=main:app
+          export FLASK_ENV=production
+          nohup flask run --host=0.0.0.0 --port=5000 &
+          echo "Waiting for Flask to start..."
           for i in {1..20}; do
-            curl -s http://127.0.0.1:5000 && break
-            echo "Waiting for Flask to start..."
-            sleep 2
+            curl -s http://127.0.0.1:5000 > /dev/null && break
+            echo "Still waiting..."
+            sleep 3
           done
+          curl -I http://127.0.0.1:5000
 
       # -------------------------
       # Run Selenium tests
       # -------------------------
-      - name: Run Selenium tests
+      - name: Run Selenium tests (headless)
         run: |
           export BASE_URL=http://127.0.0.1:5000
           python -m unittest discover -s tests -p "selenium_test.py"
