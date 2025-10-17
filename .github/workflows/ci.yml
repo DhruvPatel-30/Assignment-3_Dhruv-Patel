@@ -9,7 +9,7 @@ on:
       - main
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     services:
       mysql:
@@ -22,9 +22,9 @@ jobs:
           MYSQL_USER: dhruv
           MYSQL_PASSWORD: Dhruv3008
         options: >-
-          --health-cmd="mysqladmin ping --silent"
-          --health-interval=10s
-          --health-timeout=5s
+          --health-cmd="mysqladmin ping -h localhost" 
+          --health-interval=10s 
+          --health-timeout=5s 
           --health-retries=5
 
     steps:
@@ -40,26 +40,21 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Wait for MySQL to be ready
+      - name: Wait for MySQL
         run: |
-          for i in {1..30}; do
-            nc -z 127.0.0.1 3306 && break
-            echo "Waiting for MySQL..."
+          echo "Waiting for MySQL to be healthy..."
+          until docker exec $(docker ps -qf "name=mysql") mysqladmin ping -h "127.0.0.1" --silent; do
             sleep 5
           done
 
-      - name: Run ETL with fixture CSV
-        run: python etl/etl.py --rows 50 --file data/fixture.csv
-        env:
-          DB_HOST: 127.0.0.1
-          DB_USER: dhruv
-          DB_PASSWORD: Dhruv3008
-          DB_NAME: nyc311
+      - name: Load Database Schema
+        run: |
+          docker exec -i $(docker ps -qf "name=mysql") mysql -udhruv -pDhruv3008 nyc311 < db/schema.sql
 
-      - name: Run tests
-        run: python -m unittest discover -s tests -p "*_test.py" -v
-        env:
-          DB_HOST: 127.0.0.1
-          DB_USER: dhruv
-          DB_PASSWORD: Dhruv3008
-          DB_NAME: nyc311
+      - name: Run ETL
+        run: |
+          python etl/etl.py --rows 50 --file data/fixture.csv
+
+      - name: Run Tests
+        run: |
+          python -m unittest tests/selenium_test.py -v
