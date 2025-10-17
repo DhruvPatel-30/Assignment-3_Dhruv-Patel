@@ -1,1 +1,51 @@
-Unique Key,Created Date,Closed Date,Agency,Complaint Type,Descriptor,Borough,Latitude,Longitude
+Unique Key,Created Date,Closed Date,Agency,Agency Name,Complaint Type,Descriptor,Borough,City,Latitude,Longitude,Status,Resolution Description
+1,2023-01-27 05:00:00,2023-01-28 08:00:00,DEP,Department of Environmental Protection,Rodent,Construction,Queens,New York,40.781245,-73.711275,Closed,Case closed
+2,2023-01-07 05:00:00,2023-01-09 03:00:00,NYPD,New York Police Department,Water Leak,Building,Staten Island,New York,40.782018,-73.980264,Closed,Work in progress
+3,2023-01-28 01:00:00,2023-01-29 18:00:00,HPD,Department of Housing Preservation,Illegal Construction,Construction,Bronx,New York,40.874967,-73.965944,Open,Work in progress
+4,2023-01-31 18:00:00,2023-02-01 05:00:00,DEP,Department of Environmental Protection,Water Leak,Signal,Brooklyn,New York,40.863065,-73.801147,Closed,Work in progress
+5,2023-01-20 03:00:00,2023-01-21 12:00:00,DEP,Department of Environmental Protection,Illegal Construction,Baiting,Brooklyn,New York,40.532722,-73.866274,Open,Work in progress
+6,2023-01-20 02:00:00,2023-01-20 10:00:00,HPD,Department of Housing Preservation,Traffic,Signal,Queens,New York,40.793383,-73.897652,Open,Case closed
+7,2023-01-12 06:00:00,2023-01-14 04:00:00,DSNY,Department of Sanitation,Traffic,Baiting,Manhattan,New York,40.516879,-73.837314,Open,Issue resolved
+8,2023-01-14 02:00:00,2023-01-15 23:00:00,NYPD,New York Police Department,Rodent,Construction,Brooklyn,New York,40.800923,-73.937881,Closed,Case closed
+9,2023-01-16 22:00:00,2023-01-17 13:00:00,DEP,Department of Environmental Protection,Noise,Pipe,Bronx,New York,40.65878,-73.878587,Open,Work in progress
+10,2023-01-08 16:00:00,2023-01-10 04:00:00,NYPD,New York Police Department,Noise,Pipe,Bronx,New York,40.872463,-73.95066,Open,Work in progress
+11,2023-01-11 05:00:00,2023-01-13 04:00:00,DEP,Department of Environmental Protection,Illegal Construction,Construction,Manhattan,New York,40.859129,-73.737242,Open,Case closed
+12,2023-01-08 08:00:00,2023-01-08 15:00:00,NYPD,New York Police Department,Traffic,Building,Brooklyn,New York,40.75445,-73.889588,Closed,Signal fixed
+13,2023-01-28 05:00:00,2023-01-28 13:00:00,DEP,Department of Environmental Protection,Water Leak,Signal,Bronx,New York,40.851026,-73.843974,Open,Ongoing
+14,2023-01-28 22:00:00,2023-01-29 07:00:00,HPD,Department of Housing Preservation,Traffic,Construction,Staten Island,New York,40.567334,-73.907875,Closed,Ongoing
+15,2023-01-26 22:00:00,2023-01-27 08:00:00,HPD,Department of Housing Preservation,Traffic,Pipe,Brooklyn,New York,40.629906,-73.95895,Open,Issue resolved
+16,2023-01-26 12:00:00,2023-01-28 10:00:00,DEP,Department of Environmental Protection,Illegal Construction,Pipe,Queens,New York,40.573489,-73.97658,Open,Issue resolved
+17,2023-01-15 00:00:00,2023-01-16 11:00:00,DSNY,Department of Sanitation,Water Leak,Signal,Manhattan,New York,40.6522,-73.792872,Closed,Work in progress
+18,2023-01-01 17:00:00,2023-01-01 23:00:00,NYPD,New York Police Department,Noise,Signal,Manhattan,New York,40.818229,-73.782056,Open,Work in progress
+19,2023-01-18 02:00:00,2023-01-19 01:00:00,DSNY,Department of Sanitation,Rodent,Signal,Brooklyn,New York,40.512764,-73.891696,Open,Signal fixed
+20,2023-01-16 01:00:00,2023-01-16 09:00:00,HPD,Department of Housing Preservation,Traffic,Construction,Staten Island,New York,40.732103,-73.896979,Open,Issue resolved
+21,2023-01-06 05:00:00,2023-01-06 12:00:00,DSNY,Department of Sanitation,Water Leak,Pipe,Staten Island,New York,40.737982,-73.98963,Closed,Ongoing
+22,2023-01-24 02:00:00,2023-01-25 00:00:00,NYPD,New York Police Department,Rodent,Signal,Manhattan,New York,40.827146,-73.759492,Open,Case closed
+23,2023-01-13 01:00:00,2023-01-14 14:00:00,DEP,Department of Environmental Protection,Noise,Building,Brooklyn,New York,40.682873,-73.889666,Open,Signal fixed
+24,2023-01-10 10:00:00,2023-01-10 12:00:00,NYPD,New York Police Department,Rodent,Building,Manhattan,New York,40.57247,-73.996394,Closed,Work in progress
+25,2023-01-08 08:00:00,2023-01-09 13:00:00,NYPD,New York Police Department,Rodent,Pipe,Staten Island,New York,40.609639,-73.929102,Closed,Work in progress
+26,2023-01-21 23:00:00,2023-01-23 05:00:00,DSNY,Department of Sanitation,Noise,Pipe,Bronx,New York,40.895647,-73.844882,Closed,Ongoing
+27,2023-01-25 19:00:00,2023-01-25 23:00:00,NYPD,New York Police Department,Water Leak,Pipe,Manhattan,New York,40.688753,-73.783025,Open,Issue resolved
+28,2023-01-24 06:00:00,2023-01-25 17:00:00,DEP,Department of Environmental Protection,Traffic,Building,Bronx,New York,40.567976,-73.929549,Closed,Issue resolved
+29,2023-01-07 22:00:00,2023-01-08 14:00:00,HPD,Department of Housing Preservation,Water Leak,Building,Staten Island,New York,40.701896,-73.899508,Open,Work in progress
+30,2023-01-30 04:00:00,2023-01-30 21:00:00,DSNY,Department of Sanitation,Illegal Construction,Building,Brooklyn,New York,40.576334,-73.974805,Closed,Case closed
+31,2023-01-13 04:00:00,2023-01-15 02:00:00,NYPD,New York Police Department,Noise,Construction,Queens,New York,40.773595,-73.842842,Closed,Signal fixed
+32,2023-01-14 22:00:00,2023-01-15 19:00:00,DEP,Department of Environmental Protection,Rodent,Pipe,Brooklyn,New York,40.84347,-73.737873,Open,Case closed
+33,2023-01-12 14:00:00,2023-01-14 12:00:00,NYPD,New York Police Department,Traffic,Baiting,Manhattan,New York,40.564231,-73.80971,Open,Ongoing
+34,2023-01-19 05:00:00,2023-01-19 06:00:00,DSNY,Department of Sanitation,Traffic,Building,Bronx,New York,40.76272,-73.989731,Open,Work in progress
+35,2023-01-18 15:00:00,2023-01-20 06:00:00,DSNY,Department of Sanitation,Traffic,Building,Brooklyn,New York,40.795364,-73.700814,Open,Ongoing
+36,2023-01-18 02:00:00,2023-01-19 18:00:00,DEP,Department of Environmental Protection,Traffic,Construction,Manhattan,New York,40.76171,-73.927789,Closed,Ongoing
+37,2023-01-27 10:00:00,2023-01-28 02:00:00,DSNY,Department of Sanitation,Illegal Construction,Construction,Staten Island,New York,40.591791,-73.834294,Open,Ongoing
+38,2023-01-18 04:00:00,2023-01-18 21:00:00,DEP,Department of Environmental Protection,Water Leak,Pipe,Bronx,New York,40.727019,-73.761117,Closed,Signal fixed
+39,2023-01-10 08:00:00,2023-01-10 10:00:00,DSNY,Department of Sanitation,Water Leak,Pipe,Staten Island,New York,40.80439,-73.964543,Closed,Case closed
+40,2023-01-18 11:00:00,2023-01-19 11:00:00,HPD,Department of Housing Preservation,Rodent,Construction,Bronx,New York,40.773135,-73.848045,Closed,Case closed
+41,2023-01-22 10:00:00,2023-01-23 19:00:00,NYPD,New York Police Department,Illegal Construction,Construction,Staten Island,New York,40.599329,-73.98182,Open,Ongoing
+42,2023-01-21 15:00:00,2023-01-22 11:00:00,HPD,Department of Housing Preservation,Traffic,Building,Queens,New York,40.716678,-73.956353,Closed,Case closed
+43,2023-01-30 10:00:00,2023-01-31 17:00:00,NYPD,New York Police Department,Noise,Building,Queens,New York,40.534453,-73.912282,Closed,Work in progress
+44,2023-01-29 21:00:00,2023-01-31 08:00:00,DSNY,Department of Sanitation,Water Leak,Signal,Bronx,New York,40.893288,-73.909705,Open,Issue resolved
+45,2023-01-06 14:00:00,2023-01-07 13:00:00,NYPD,New York Police Department,Noise,Signal,Brooklyn,New York,40.611753,-73.712455,Closed,Signal fixed
+46,2023-01-25 13:00:00,2023-01-25 21:00:00,DSNY,Department of Sanitation,Water Leak,Pipe,Staten Island,New York,40.853269,-73.730685,Open,Ongoing
+47,2023-01-21 15:00:00,2023-01-22 14:00:00,DEP,Department of Environmental Protection,Noise,Baiting,Queens,New York,40.697942,-73.95173,Closed,Work in progress
+48,2023-01-01 11:00:00,2023-01-01 21:00:00,DEP,Department of Environmental Protection,Rodent,Construction,Staten Island,New York,40.515355,-73.832097,Open,Case closed
+49,2023-01-06 04:00:00,2023-01-07 08:00:00,DEP,Department of Environmental Protection,Traffic,Pipe,Manhattan,New York,40.625432,-73.707985,Closed,Case closed
+50,2023-01-20 01:00:00,2023-01-20 17:00:00,DEP,Department of Environmental Protection,Illegal Construction,Pipe,Manhattan,New York,40.706358,-73.830983,Open,Signal fixed
