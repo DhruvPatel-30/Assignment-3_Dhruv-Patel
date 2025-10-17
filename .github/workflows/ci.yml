@@ -2,21 +2,22 @@ name: Assignment 3 CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  build-and-test:
+  build-test:
     runs-on: ubuntu-latest
+
     services:
-      mysql:
+      db:
         image: mysql:8
+        ports:
+          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: nyc311
-        ports:
-          - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
@@ -24,39 +25,34 @@ jobs:
           --health-retries=5
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+    - name: Checkout repository
+      uses: actions/checkout@v3
 
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install selenium pymysql pandas python-dotenv
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
 
-      - name: Wait for MySQL to be healthy
-        run: |
-          echo "Waiting for MySQL..."
-          until mysqladmin ping -h 127.0.0.1 -uroot -proot --silent; do
-            sleep 2
-          done
+    - name: Wait for MySQL to be ready
+      run: |
+        until mysqladmin ping -h 127.0.0.1 -P 3306 --silent; do
+          echo "Waiting for database..."
+          sleep 3
+        done
 
-      - name: Load MySQL schema
-        run: |
-          mysql -h 127.0.0.1 -uroot -proot nyc311 < db/schema.sql
+    - name: Load database schema
+      run: |
+        mysql -h 127.0.0.1 -uroot -proot nyc311 < db/schema.sql
 
-      - name: Run ETL
-        run: |
-          python etl/etl.py --rows 50  # small fixture CSV for CI
+    - name: Run ETL on small fixture CSV
+      run: |
+        python etl/etl.py --rows 50 --file data/fixture.csv
 
-      - name: Start Flask app
-        run: |
-          nohup python -m flask run --host=0.0.0.0 --port=5000 &
-
-      - name: Run Selenium Tests
-        run: |
-          python -m unittest tests/selenium_test.py -v
+    - name: Run Selenium tests
+      run: |
+        pytest -q --disable-warnings tests/selenium_test.py
