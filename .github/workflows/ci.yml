@@ -36,25 +36,30 @@ jobs:
       - name: Install MySQL client
         run: sudo apt-get update && sudo apt-get install -y default-mysql-client
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install Python dependencies
+        run: pip install --upgrade pip && pip install -r requirements.txt python-dotenv pymysql pandas
 
       - name: Wait for MySQL to be ready
         run: |
           echo "Waiting for MySQL to be healthy..."
-          until mysql -hmysql -uroot -pDhruv3008 -e "SELECT 1"; do
+          for i in {1..30}; do
+            mysql -hmysql -uroot -pDhruv3008 -e "SELECT 1" && break
             echo "MySQL not ready yet..."
             sleep 2
           done
 
       - name: Load schema
-        run: |
-          mysql -hmysql -uroot -pDhruv3008 nyc311 < db/schema.sql
+        run: mysql -hmysql -uroot -pDhruv3008 nyc311 < db/schema.sql
 
-      - name: Run ETL with fixture data
+      - name: Copy fixture CSV
         run: |
-          export DB_HOST=mysql
-          export DB_USER=dhruv
-          export DB_PASSWORD=Dhruv3008
-          export DB_NAME=nyc311
-          python etl/etl.py --rows 50 --file data/fixture.csv
+          mkdir -p data
+          curl -L -o data/fixture.csv https://raw.githubusercontent.com/your-repo/your-branch/main/data/fixture.csv
+
+      - name: Run ETL
+        env:
+          DB_HOST: mysql
+          DB_USER: dhruv
+          DB_PASSWORD: Dhruv3008
+          DB_NAME: nyc311
+        run: python etl/etl.py --rows 50 --file data/fixture.csv
