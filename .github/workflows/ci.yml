@@ -59,22 +59,18 @@ jobs:
           export DB_NAME=nyc311
           python etl/etl.py --rows 50 --file data/fixture.csv
 
-      # -----------------------------
-      # Selenium task
-      # -----------------------------
-      - name: Install Chrome
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y wget gnupg
-          wget -qO- https://dl.google.com/linux/linux_signing_key.pub | sudo gpg --dearmor -o /usr/share/keyrings/google-chrome.gpg
-          echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-chrome.gpg] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
-
-      - name: Install Selenium
+      # ----------------------- Selenium part -----------------------
+      - name: Install Selenium & WebDriver
         run: pip install selenium webdriver-manager
 
-      - name: Run Selenium tests headless
+      - name: Start Flask App
+        run: |
+          export FLASK_APP=app.main
+          export FLASK_ENV=development
+          nohup python -m flask run --host=0.0.0.0 --port=5000 &
+          sleep 5
+
+      - name: Run Selenium tests
         run: |
           export BASE_URL=http://127.0.0.1:5000
           python -m unittest discover -s tests -p "selenium_test.py"
