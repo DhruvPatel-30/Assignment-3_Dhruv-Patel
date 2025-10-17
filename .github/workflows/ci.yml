@@ -1,54 +1,65 @@
-name: Assignment-3 CI
+name: Assignment 3 CI
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   pull_request:
-    branches: [main]
+    branches:
+      - main
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
     services:
       mysql:
         image: mysql:8
+        ports:
+          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: Dhruv3008
           MYSQL_DATABASE: nyc311
           MYSQL_USER: dhruv
           MYSQL_PASSWORD: Dhruv3008
-        ports:
-          - 3306:3306
         options: >-
-          --health-cmd="mysqladmin ping -h localhost"
+          --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
           --health-retries=5
 
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.11
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.11
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-    - name: Wait for MySQL to be ready
-      run: |
-        echo "Waiting for MySQL..."
-        for i in {1..30}; do
-          nc -zv localhost 3306 && break
-          echo "MySQL not ready yet..."
-          sleep 5
-        done
+      - name: Wait for MySQL to be ready
+        run: |
+          for i in {1..30}; do
+            nc -z 127.0.0.1 3306 && break
+            echo "Waiting for MySQL..."
+            sleep 5
+          done
 
-    - name: Run ETL with fixture data
-      run: python etl/etl.py --rows 50 --file data/fixture.csv
+      - name: Run ETL with fixture CSV
+        run: python etl/etl.py --rows 50 --file data/fixture.csv
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: dhruv
+          DB_PASSWORD: Dhruv3008
+          DB_NAME: nyc311
 
-    - name: Run tests
-      run: python -m unittest discover -s tests -p "*.py" -v
+      - name: Run tests
+        run: python -m unittest discover -s tests -p "*_test.py" -v
+        env:
+          DB_HOST: 127.0.0.1
+          DB_USER: dhruv
+          DB_PASSWORD: Dhruv3008
+          DB_NAME: nyc311
