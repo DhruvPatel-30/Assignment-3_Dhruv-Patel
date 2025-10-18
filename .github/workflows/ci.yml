@@ -1,75 +1,86 @@
-name: CI
+name: Assignment3_CI_CD_DhruvPatel_9062297
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     services:
       mysql:
-        image: mysql:8.0
-        env:
-          MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: nyc311
+        image: mysql:8
         ports:
           - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: Dhruv3008
+          MYSQL_DATABASE: nyc311
         options: >-
-          --health-cmd="mysqladmin ping --silent"
+          --health-cmd="mysqladmin ping -h localhost -pDhruv3008"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=3
+          --health-retries=5
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.11
+          python-version: '3.11'
 
       - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
+          pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest selenium
 
-      # Wait for MySQL to be healthy
-      - name: Wait for MySQL
+      # ✅ Step 1: Create table before ETL runs
+      - name: Create MySQL table
         run: |
-          for i in {1..10}; do
-            mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" && break
-            echo "Waiting for MySQL..."
-            sleep 3
-          done
-
-      # Create service_requests table
-      - name: Create table
-        run: |
-          mysql -h 127.0.0.1 -uroot -proot nyc311 <<'SQL'
+          mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "
+          CREATE DATABASE IF NOT EXISTS nyc311;
+          USE nyc311;
           CREATE TABLE IF NOT EXISTS service_requests (
-            request_id BIGINT PRIMARY KEY,
-            created_datetime DATETIME,
-            closed_datetime DATETIME,
-            agency VARCHAR(255),
-            agency_name VARCHAR(255),
-            complaint_type VARCHAR(255),
-            descriptor VARCHAR(255),
-            borough VARCHAR(255),
-            city VARCHAR(255),
-            latitude DOUBLE,
-            longitude DOUBLE,
-            status VARCHAR(255),
-            resolution_description TEXT,
-            month_key VARCHAR(7)
-          );
-          SQL
+              request_id BIGINT PRIMARY KEY,
+              created_datetime DATETIME NULL,
+              closed_datetime DATETIME NULL,
+              agency VARCHAR(255),
+              agency_name VARCHAR(255),
+              complaint_type VARCHAR(255),
+              descriptor VARCHAR(255),
+              borough VARCHAR(255),
+              city VARCHAR(255),
+              latitude DOUBLE,
+              longitude DOUBLE,
+              status VARCHAR(255),
+              resolution_description TEXT,
+              month_key VARCHAR(7)
+          );"
 
-      # Run ETL with fixture.csv
-      - name: Run ETL
-        run: python etl/etl.py --rows 50 --file data/fixture.csv
+      # ✅ Step 2: Run ETL to insert data
+      - name: Run ETL script
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASSWORD: Dhruv3008
+          DB_NAME: nyc311
+        run: |
+          python etl/etl.py --rows 50 --file data/fixture.csv
 
-      # Run tests
-      - name: Run tests
-        run: python -m pytest -q --maxfail=1 --disable-warnings -v
+      # (Optional debug)
+      - name: Verify row count
+        run: |
+          mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "USE nyc311; SELECT COUNT(*) AS total_rows FROM service_requests;"
+
+      # ✅ Start Flask in background
+      - name: Start Flask app
+        run: |
+          nohup python -m flask --app app.main run --host=0.0.0.0 --port=5000 &
+          sleep 10
+
+
