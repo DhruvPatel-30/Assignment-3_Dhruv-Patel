@@ -77,8 +77,8 @@ jobs:
       # Run Selenium tests
       # -------------------------
       - name: Run Selenium tests (headless)
-          env:
+        env:
             BASE_URL: http://127.0.0.1:5000
-          run: |
+        run: |
             pytest -q --maxfail=1 --disable-warnings -v
           
