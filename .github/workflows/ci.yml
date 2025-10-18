@@ -58,7 +58,7 @@ jobs:
 
       - name: Run ETL with fixtures.csv
         run: |
-          python etl/etl.py --rows 50 --file data/fixtures.csv
+          python etl/etl.py --rows 50 --file data/fixture.csv
 
       - name: Start Flask app
         run: |
