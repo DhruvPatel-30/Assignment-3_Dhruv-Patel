@@ -79,9 +79,9 @@ jobs:
       - name: Run Selenium tests (headless)
     env:
       APP_URL: http://127.0.0.1:5000
-    run: |
-      pip install pytest
-      # Start Flask app in background
-      nohup python app.py & 
-      sleep 10  # wait for Flask to start
-      pytest -q --maxfail=1 --disable-warnings -v
+      run: |
+        pip install pytest
+         # Start Flask app in background
+         nohup python app.py & 
+         sleep 10  # wait for Flask to start
+         pytest -q --maxfail=1 --disable-warnings -v
