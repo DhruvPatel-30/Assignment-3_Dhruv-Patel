@@ -1,85 +1,90 @@
-name: CI
+name: Assignment3_CI_CD_DhruvPatel_9062297
 
 on:
   push:
-    branches: [main]
+    branches: [ "main" ]
   pull_request:
-    branches: [main]
+    branches: [ "main" ]
 
 jobs:
-  etl-and-selenium:
+  build:
     runs-on: ubuntu-latest
-
     services:
       mysql:
         image: mysql:8
+        ports:
+          - 3306:3306
         env:
           MYSQL_ROOT_PASSWORD: Dhruv3008
           MYSQL_DATABASE: nyc311
-          MYSQL_USER: dhruv
-          MYSQL_PASSWORD: Dhruv3008
         options: >-
-          --health-cmd="mysqladmin ping -uroot -pDhruv3008"
-          --health-interval=5s
+          --health-cmd="mysqladmin ping -h localhost -pDhruv3008"
+          --health-interval=10s
           --health-timeout=5s
-          --health-retries=10
-        ports:
-          - 3306:3306
+          --health-retries=5
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11"
-
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y default-mysql-client unzip curl xvfb
+          python-version: '3.11'
 
       - name: Install dependencies
-        run: | 
-          pip install --upgrade pip && pip install -r requirements.txt
-          python -m pip install pytest selenium
-
-      - name: Wait for MySQL to be ready
         run: |
-          echo "Waiting for MySQL to be healthy..."
-          for i in {1..10}; do
-            mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "SELECT 1" && break
-            echo "MySQL not ready yet..."
-            sleep 3
-          done
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest selenium
 
-      - name: Load schema
-        run: mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 nyc311 < db/schema.sql
-
-      - name: Run ETL on fixture data
+      # ✅ Step 1: Create table before ETL runs
+      - name: Create MySQL table
         run: |
-          export DB_HOST=127.0.0.1
-          export DB_USER=dhruv
-          export DB_PASSWORD=Dhruv3008
-          export DB_NAME=nyc311
-          python etl/etl.py --rows 50 --file data/fixture.csv
+          mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "
+          CREATE DATABASE IF NOT EXISTS nyc311;
+          USE nyc311;
+          CREATE TABLE IF NOT EXISTS service_requests (
+              request_id BIGINT PRIMARY KEY,
+              created_datetime DATETIME NULL,
+              closed_datetime DATETIME NULL,
+              agency VARCHAR(255),
+              agency_name VARCHAR(255),
+              complaint_type VARCHAR(255),
+              descriptor VARCHAR(255),
+              borough VARCHAR(255),
+              city VARCHAR(255),
+              latitude DOUBLE,
+              longitude DOUBLE,
+              status VARCHAR(255),
+              resolution_description TEXT,
+              month_key VARCHAR(7)
+          );"
 
-    
+      # ✅ Step 2: Run ETL to insert data
+      - name: Run ETL script
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 3306
+          DB_USER: root
+          DB_PASSWORD: Dhruv3008
+          DB_NAME: nyc311
+        run: |
+          python etl/etl.py --rows 50 --file data/311_Service_Requests_from_2010_to_Present_20251016.csv
 
-      # -------------------------
-      # Start Flask app
-      # -------------------------
+      # (Optional debug)
+      - name: Verify row count
+        run: |
+          mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "USE nyc311; SELECT COUNT(*) AS total_rows FROM service_requests;"
+
+      # ✅ Start Flask in background
       - name: Start Flask app
         run: |
-          nohup python -c "from app.main import app; app.run(host='127.0.0.1', port=5000)" &
+          nohup python -m flask --app app.main run --host=0.0.0.0 --port=5000 &
           sleep 10
 
-
-      # -------------------------
-      # Run Selenium tests
-      # -------------------------
-      - name: Run Selenium tests (headless)
+      # ✅ Step 3: Run Selenium tests (headless)
+      - name: Run Selenium tests
         env:
-            BASE_URL: http://127.0.0.1:5000
-        run:
-          python -m pytest -q --maxfail=1 --disable-warnings -v
+          APP_URL: http://127.0.0.1:5000
+        run: pytest -q --maxfail=1 --disable-warnings -v
