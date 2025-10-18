@@ -70,7 +70,7 @@ jobs:
           DB_PASSWORD: Dhruv3008
           DB_NAME: nyc311
         run: |
-          python etl/etl.py --rows 50 --file data/311_Service_Requests_from_2010_to_Present_20251016.csv
+          python etl/etl.py --rows 50 --file data/fixture.csv
 
       # (Optional debug)
       - name: Verify row count
