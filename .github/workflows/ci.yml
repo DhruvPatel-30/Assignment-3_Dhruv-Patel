@@ -40,7 +40,9 @@ jobs:
           sudo apt-get install -y default-mysql-client unzip curl xvfb
 
       - name: Install dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt
+        run: | 
+          pip install --upgrade pip && pip install -r requirements.txt
+          python -m pip install pytest selenium
 
       - name: Wait for MySQL to be ready
         run: |
@@ -79,6 +81,5 @@ jobs:
       - name: Run Selenium tests (headless)
         env:
             BASE_URL: http://127.0.0.1:5000
-        run: |
-            pytest -q --maxfail=1 --disable-warnings -v
-          
+        run:
+          python -m pytest -q --maxfail=1 --disable-warnings -v
