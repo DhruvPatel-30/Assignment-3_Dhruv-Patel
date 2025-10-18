@@ -76,8 +76,9 @@ jobs:
       # -------------------------
       # Run Selenium tests
       # -------------------------
-      -  name: Run Selenium tests (headless)
-         run: |
-          export BASE_URL=http://127.0.0.1:5000
-          echo "Running Selenium tests against $BASE_URL"
-          python -m unittest discover -s tests -p "selenium_test.py" -v
+      - name: Run tests (headless)
+        env:
+          APP_URL: http://127.0.0.1:5000
+        run: |
+          pip install pytest
+          pytest -q
