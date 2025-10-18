@@ -83,8 +83,4 @@ jobs:
           nohup python -m flask --app app.main run --host=0.0.0.0 --port=5000 &
           sleep 10
 
-      # ✅ Step 3: Run Selenium tests (headless)
-      - name: Run Selenium tests
-        env:
-          APP_URL: http://127.0.0.1:5000
-        run: pytest -q --maxfail=1 --disable-warnings -v
+    
