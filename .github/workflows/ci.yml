@@ -1,4 +1,4 @@
-name: CI
+name: Assignment3_CI_9062297_DhruvPatel
 
 on:
   push:
@@ -7,81 +7,51 @@ on:
     branches: [main]
 
 jobs:
-  etl-and-selenium:
+  build-test:
     runs-on: ubuntu-latest
 
     services:
       mysql:
         image: mysql:8
         env:
-          MYSQL_ROOT_PASSWORD: Dhruv3008
+          MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: nyc311
-          MYSQL_USER: dhruv
-          MYSQL_PASSWORD: Dhruv3008
-        options: >-
-          --health-cmd="mysqladmin ping -uroot -pDhruv3008"
-          --health-interval=5s
-          --health-timeout=5s
-          --health-retries=10
         ports:
-          - 3306:3306
+          - 3307:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost -proot"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
 
-      - name: Install system packages
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y default-mysql-client unzip curl xvfb
-
       - name: Install dependencies
-        run: pip install --upgrade pip && pip install -r requirements.txt
-
-      - name: Wait for MySQL to be ready
         run: |
-          echo "Waiting for MySQL to be healthy..."
-          for i in {1..10}; do
-            mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "SELECT 1" && break
-            echo "MySQL not ready yet..."
-            sleep 3
-          done
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest selenium
 
-      - name: Load schema
-        run: mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 nyc311 < db/schema.sql
-
-      - name: Run ETL on fixture data
+      - name: Build and run Docker containers
         run: |
-          export DB_HOST=127.0.0.1
-          export DB_USER=dhruv
-          export DB_PASSWORD=Dhruv3008
-          export DB_NAME=nyc311
-          python etl/etl.py --rows 50 --file data/fixture.csv
+          docker compose up -d
+          sleep 20  # allow MySQL + Flask containers to initialize
 
-    
-
-      # -------------------------
-      # Start Flask app
-      # -------------------------
-      - name: Start Flask app
-        run: |
-          nohup python -c "from app.main import app; app.run(host='127.0.0.1', port=5000)" &
-          sleep 3
-
-
-      # -------------------------
-      # Run Selenium tests
-      # -------------------------
       - name: Run Selenium tests (headless)
-    env:
-      APP_URL: http://127.0.0.1:5000
-      run: |
-        pip install pytest
-         # Start Flask app in background
-         nohup python app.py & 
-         sleep 10  # wait for Flask to start
-         pytest -q --maxfail=1 --disable-warnings -v
+        env:
+          APP_URL: http://127.0.0.1:5000
+        run: |
+          echo "Waiting for Flask to start..."
+          sleep 10  # extra buffer to ensure app is ready
+          pytest -q --maxfail=1 --disable-warnings -v
+
+      - name: Tear down containers
+        if: always()
+        run: docker compose down
