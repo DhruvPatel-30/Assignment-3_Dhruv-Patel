@@ -1,38 +1,26 @@
-name: CI - NYC 311 App
+name: CI
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
   pull_request:
 
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
-
     services:
       mysql:
-        image: mysql:8
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
           MYSQL_DATABASE: nyc311
-          MYSQL_USER: test
-          MYSQL_PASSWORD: test
         ports:
           - 3306:3306
         options: >-
           --health-cmd="mysqladmin ping --silent"
           --health-interval=10s
           --health-timeout=5s
-          --health-retries=5
-
-    env:
-      DB_HOST: 127.0.0.1
-      DB_PORT: 3306
-      DB_USER: test
-      DB_PASSWORD: test
-      DB_NAME: nyc311
-      BASE_URL: http://127.0.0.1:5000
+          --health-retries=3
 
     steps:
       - uses: actions/checkout@v3
@@ -46,26 +34,42 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
-          pip install pytest selenium pymysql python-dotenv
 
+      # Wait for MySQL to be healthy
       - name: Wait for MySQL
         run: |
-          for i in {1..30}; do
-            mysqladmin ping -h127.0.0.1 -uroot -proot && break
+          for i in {1..10}; do
+            mysql -h 127.0.0.1 -uroot -proot -e "SELECT 1" && break
             echo "Waiting for MySQL..."
-            sleep 2
+            sleep 3
           done
 
-      - name: Run ETL with fixtures.csv
+      # Create service_requests table
+      - name: Create table
         run: |
-          python etl/etl.py --rows 50 --file data/fixture.csv
+          mysql -h 127.0.0.1 -uroot -proot nyc311 <<'SQL'
+          CREATE TABLE IF NOT EXISTS service_requests (
+            request_id BIGINT PRIMARY KEY,
+            created_datetime DATETIME,
+            closed_datetime DATETIME,
+            agency VARCHAR(255),
+            agency_name VARCHAR(255),
+            complaint_type VARCHAR(255),
+            descriptor VARCHAR(255),
+            borough VARCHAR(255),
+            city VARCHAR(255),
+            latitude DOUBLE,
+            longitude DOUBLE,
+            status VARCHAR(255),
+            resolution_description TEXT,
+            month_key VARCHAR(7)
+          );
+          SQL
 
-      - name: Start Flask app
-        run: |
-          nohup python -m flask --app app.main run --host=0.0.0.0 --port=5000 &
-          echo "Waiting for Flask to start..."
-          sleep 10
+      # Run ETL with fixture.csv
+      - name: Run ETL
+        run: python etl/etl.py --rows 50 --file data/fixture.csv
 
-      - name: Run Selenium tests
-        run: |
-          pytest -q --maxfail=1 --disable-warnings -v
+      # Run tests
+      - name: Run tests
+        run: python -m pytest -q --maxfail=1 --disable-warnings -v
