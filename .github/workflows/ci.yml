@@ -38,30 +38,8 @@ jobs:
           pip install -r requirements.txt
           pip install pytest selenium
 
-      # ✅ Step 1: Create table before ETL runs
-      - name: Create MySQL table
-        run: |
-          mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "
-          CREATE DATABASE IF NOT EXISTS nyc311;
-          USE nyc311;
-          CREATE TABLE IF NOT EXISTS service_requests (
-              request_id BIGINT PRIMARY KEY,
-              created_datetime DATETIME NULL,
-              closed_datetime DATETIME NULL,
-              agency VARCHAR(255),
-              agency_name VARCHAR(255),
-              complaint_type VARCHAR(255),
-              descriptor VARCHAR(255),
-              borough VARCHAR(255),
-              city VARCHAR(255),
-              latitude DOUBLE,
-              longitude DOUBLE,
-              status VARCHAR(255),
-              resolution_description TEXT,
-              month_key VARCHAR(7)
-          );"
 
-      # ✅ Step 2: Run ETL to insert data
+      #  Step 1: Run ETL to insert data
       - name: Run ETL script
         env:
           DB_HOST: 127.0.0.1
@@ -77,10 +55,14 @@ jobs:
         run: |
           mysql -h127.0.0.1 -P3306 -uroot -pDhruv3008 -e "USE nyc311; SELECT COUNT(*) AS total_rows FROM service_requests;"
 
-      # ✅ Start Flask in background
+      # Start Flask in background
       - name: Start Flask app
         run: |
           nohup python -m flask --app app.main run --host=0.0.0.0 --port=5000 &
           sleep 10
 
-    
+      #  Step : Run Selenium tests (headless)
+      - name: Run Selenium tests
+        env:
+          APP_URL: http://127.0.0.1:5000
+        run: pytest -q --maxfail=1 --disable-warnings -v
